@@ -26,37 +26,36 @@ class Solution
 		}
 		else{
 			$html = file_get_html($url);
-
-			$this->getElementInfo($html, 'img');
-			$this->getElementInfo($html, 'link');
-			$this->getElementInfo($html, 'script');
-			$this->getElementInfo($html, 'iframe');		
+			$this->getElementInfo($html);
 		}		
 	}
 
 
-	public function getElementInfo($html, $el){
-		if($el == 'iframe'){
-			foreach($html->find($el) as $element){
-				$this->solve($element->src);
+	public function getElementInfo($html){
+
+		foreach($html->find('img') as $element){
+			$this->total_size += (int)$this->getFileSize($element->src);
+			$this->total_request += 1;
+		}
+
+		foreach($html->find('link') as $element){		
+			if (strpos($element->href,'.css') !== false) {				
+				$this->total_size += (int)$this->getFileSize($element->href);					
+				$this->total_request += 1;
 			}
 		}
-		else{
-			if($el == 'link'){
-				foreach($html->find('link') as $element){			
-					if (strpos($element->href,'.css') !== false) {
-						$this->total_size += $this->getFileSize($element->href);					
-						$this->total_request += 1;				
-					}
-				}
+
+		foreach($html->find('script') as $element){
+			if (strpos($element->src,'.js') !== false) {				
+				$this->total_size += (int)$this->getFileSize($element->src);
+				$this->total_request += 1;
 			}
-			else{
-				foreach($html->find($el) as $element){
-					$this->total_size += $this->getFileSize($element->src);
-					$this->total_request += 1;
-				}		
-			}			
-		}		
+		}
+
+		foreach($html->find('iframe') as $element){
+			$this->solve($element->src);
+		}
+		
 	}
 
 	public function is_html($url){		
